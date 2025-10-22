@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"beeter"
-	"beeter/internal/fixtures"
-	"beeter/internal/mockbeet"
+	"beetman"
+	"beetman/internal/fixtures"
+	"beetman/internal/mockbeet"
 )
 
 var binaryPath string
@@ -392,9 +392,9 @@ func TestHandleErrorsCommand(t *testing.T) {
 }
 
 // CreateManager creates a new manager instance for testing
-func CreateManager(t *testing.T, dataDir, albumsDir string) *beeter.BeetImportManager {
+func CreateManager(t *testing.T, dataDir, albumsDir string) *beetman.BeetImportManager {
 	t.Helper()
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   dataDir,
 		AlbumsDir: albumsDir,
 	})
@@ -498,7 +498,7 @@ func TestHandleSkipCommand(t *testing.T) {
 	defer env.cleanup()
 
 	// Create manager with some skipped albums for testing
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})

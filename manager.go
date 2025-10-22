@@ -1,4 +1,4 @@
-package beeter
+package beetman
 
 import (
 	"bufio"
@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"beeter/internal/albums"
-	"beeter/internal/beet"
-	"beeter/internal/database"
-	"beeter/internal/log"
+	"beetman/internal/albums"
+	"beetman/internal/beet"
+	"beetman/internal/database"
+	"beetman/internal/log"
 )
 
 const permissions = 0700

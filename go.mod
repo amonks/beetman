@@ -1,4 +1,4 @@
-module beeter
+module github.com/amonks/beetman
 
 go 1.24.0
 

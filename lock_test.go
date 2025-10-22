@@ -1,4 +1,4 @@
-package beeter
+package beetman
 
 import (
 	"os"

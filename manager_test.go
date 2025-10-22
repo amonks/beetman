@@ -1,7 +1,7 @@
-package beeter_test
+package beetman_test
 
 import (
-	"beeter"
+	"beetman"
 	"context"
 	"database/sql"
 	"os"
@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"beeter/internal/fixtures"
-	"beeter/internal/mockbeet"
+	"beetman/internal/fixtures"
+	"beetman/internal/mockbeet"
 )
 
 // testEnv holds test environment paths
@@ -66,7 +66,7 @@ func TestNew(t *testing.T) {
 	defer env.cleanup()
 
 	// Create manager
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -107,20 +107,20 @@ func TestNewConcurrent(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.cleanup()
 
-	opts := beeter.Options{
+	opts := beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	}
 
 	// Create first manager
-	manager1, err := beeter.New(opts)
+	manager1, err := beetman.New(opts)
 	if err != nil {
 		t.Fatalf("Failed to create first manager: %v", err)
 	}
 	defer manager1.Close()
 
 	// Try to create second manager (should fail due to lock)
-	manager2, err := beeter.New(opts)
+	manager2, err := beetman.New(opts)
 	if err == nil {
 		manager2.Close()
 		t.Error("Expected error when creating second manager, got nil")
@@ -131,13 +131,13 @@ func TestClose(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.cleanup()
 
-	opts := beeter.Options{
+	opts := beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	}
 
 	// Create manager
-	manager, err := beeter.New(opts)
+	manager, err := beetman.New(opts)
 	if err != nil {
 		t.Fatalf("Failed to create manager: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestClose(t *testing.T) {
 	}
 
 	// Verify lock is released by trying to create new manager
-	manager2, err := beeter.New(opts)
+	manager2, err := beetman.New(opts)
 	if err != nil {
 		t.Errorf("Failed to create new manager after close: %v", err)
 	}
@@ -177,7 +177,7 @@ func TestSetup(t *testing.T) {
 	}
 
 	// Create manager
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -270,7 +270,7 @@ func TestImport(t *testing.T) {
 	)
 
 	// Create manager
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -533,7 +533,7 @@ func TestNewReadOnly(t *testing.T) {
 	defer env.cleanup()
 
 	// Create read-only manager
-	manager, err := beeter.NewReadOnly(beeter.Options{
+	manager, err := beetman.NewReadOnly(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -565,7 +565,7 @@ func TestNewReadOnly(t *testing.T) {
 	}
 
 	// Test concurrent access with read-only manager
-	manager2, err := beeter.NewReadOnly(beeter.Options{
+	manager2, err := beetman.NewReadOnly(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -580,7 +580,7 @@ func TestStats(t *testing.T) {
 	defer env.cleanup()
 
 	// First create a regular manager to set up the data
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -601,7 +601,7 @@ func TestStats(t *testing.T) {
 	manager.Close()
 
 	// Create a read-only manager to test stats
-	roManager, err := beeter.NewReadOnly(beeter.Options{
+	roManager, err := beetman.NewReadOnly(beetman.Options{
 		DataDir:   env.dataDir,
 		AlbumsDir: env.albumsDir,
 	})
@@ -754,9 +754,9 @@ func TestHandleSkip(t *testing.T) {
 	})
 }
 
-func CreateManager(t *testing.T, dataDir, albumsDir string) *beeter.BeetImportManager {
+func CreateManager(t *testing.T, dataDir, albumsDir string) *beetman.BeetImportManager {
 	t.Helper()
-	manager, err := beeter.New(beeter.Options{
+	manager, err := beetman.New(beetman.Options{
 		DataDir:   dataDir,
 		AlbumsDir: albumsDir,
 	})

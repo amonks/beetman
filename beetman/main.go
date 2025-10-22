@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"beeter"
+	"beetman"
 )
 
 // printUsage prints the application usage information
@@ -59,7 +59,7 @@ func run() error {
 	}
 
 	// Get default options
-	opts, err := beeter.DefaultOptions()
+	opts, err := beetman.DefaultOptions()
 	if err != nil {
 		return fmt.Errorf("failed to get default options: %w", err)
 	}
@@ -73,11 +73,11 @@ func run() error {
 	}
 
 	// Create manager instance based on command
-	var manager *beeter.BeetImportManager
+	var manager *beetman.BeetImportManager
 	if args[0] == "stats" {
-		manager, err = beeter.NewReadOnly(opts)
+		manager, err = beetman.NewReadOnly(opts)
 	} else {
-		manager, err = beeter.New(opts)
+		manager, err = beetman.New(opts)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to create manager: %w", err)

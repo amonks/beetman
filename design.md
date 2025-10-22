@@ -7,7 +7,7 @@ This document describes the design of a Go program that manages the import of mu
 
 The program is organized into the following packages:
 
-### Root Package (beeter)
+### Root Package (beetman)
 The root package provides the main coordination layer:
 - `BeetImportManager` struct that ties all components together
 - Configuration via `Options` struct for paths and settings

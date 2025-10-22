@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"beeter/internal/fixtures"
-	"beeter/internal/mockbeet"
+	"beetman/internal/fixtures"
+	"beetman/internal/mockbeet"
 )
 
 func setupTestDir(t *testing.T) (string, string, func()) {
