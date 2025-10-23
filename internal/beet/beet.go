@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"beetman/internal/log"
+	"github.com/amonks/beetman/internal/log"
 )
 
 // Manager handles beet import operations

@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"beetman"
-	"beetman/internal/fixtures"
-	"beetman/internal/mockbeet"
+	"github.com/amonks/beetman"
+	"github.com/amonks/beetman/internal/fixtures"
+	"github.com/amonks/beetman/internal/mockbeet"
 )
 
 var binaryPath string

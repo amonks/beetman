@@ -1,7 +1,7 @@
 package beetman_test
 
 import (
-	"beetman"
+	"github.com/amonks/beetman"
 	"context"
 	"database/sql"
 	"os"
@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"beetman/internal/fixtures"
-	"beetman/internal/mockbeet"
+	"github.com/amonks/beetman/internal/fixtures"
+	"github.com/amonks/beetman/internal/mockbeet"
 )
 
 // testEnv holds test environment paths
