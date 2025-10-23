@@ -91,7 +91,22 @@ func (s *SQLiteDB) GetPendingAlbums() ([]string, error) {
 }
 
 func (s *SQLiteDB) GetSkippedAlbums() ([]string, error) {
-	return s.getAlbumsByStatus("skipped")
+	// For skipped albums, order by import_time DESC (newest first - most recently skipped)
+	rows, err := s.db.Query("SELECT directory_name FROM albums WHERE status = ? ORDER BY import_time DESC NULLS LAST", "skipped")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query albums: %w", err)
+	}
+	defer rows.Close()
+
+	var albums []string
+	for rows.Next() {
+		var album string
+		if err := rows.Scan(&album); err != nil {
+			return nil, fmt.Errorf("failed to scan album: %w", err)
+		}
+		albums = append(albums, album)
+	}
+	return albums, rows.Err()
 }
 
 func (s *SQLiteDB) GetImportedAlbums() ([]string, error) {
