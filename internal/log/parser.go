@@ -20,8 +20,9 @@ func New(albumsDir string) *Parser {
 	}
 }
 
-// ParseSkippedAlbums parses a log file to identify which albums from a batch were skipped
-func (p *Parser) ParseSkippedAlbums(logFile string) ([]string, error) {
+// ParseSkippedAlbums parses a log file to identify which albums from a batch
+// were skipped, and why. Returns a map from album path to skip reason.
+func (p *Parser) ParseSkippedAlbums(logFile string) (map[string]string, error) {
 	file, err := os.Open(logFile)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -31,16 +32,23 @@ func (p *Parser) ParseSkippedAlbums(logFile string) ([]string, error) {
 	}
 	defer file.Close()
 
-	skipped := map[string]struct{}{}
+	skipped := map[string]string{}
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if !strings.HasPrefix(line, "skip ") {
+
+		var reason, path string
+		if strings.HasPrefix(line, "duplicate-skip ") {
+			reason = "duplicate"
+			path = strings.TrimPrefix(line, "duplicate-skip ")
+		} else if strings.HasPrefix(line, "skip ") {
+			reason = "no strong match"
+			path = strings.TrimPrefix(line, "skip ")
+		} else {
 			continue
 		}
 
-		// Extract album path from "skip /path/to/album; reason"
-		path := strings.TrimPrefix(line, "skip ")
+		// Strip multi-disc paths after semicolons
 		if idx := strings.Index(path, ";"); idx >= 0 {
 			path = path[:idx]
 		}
@@ -54,17 +62,12 @@ func (p *Parser) ParseSkippedAlbums(logFile string) ([]string, error) {
 		}
 		path = parts[1]
 
-		skipped[path] = struct{}{}
+		skipped[path] = reason
 	}
 
 	if err := scanner.Err(); err != nil {
 		return nil, fmt.Errorf("error reading log file: %w", err)
 	}
 
-	out := make([]string, 0, len(skipped))
-	for path := range skipped {
-		out = append(out, path)
-	}
-
-	return out, nil
+	return skipped, nil
 }

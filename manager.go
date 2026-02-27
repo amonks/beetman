@@ -186,9 +186,9 @@ func (m *BeetImportManager) Setup(cutoffTime string, previousLog string) error {
 		}
 		fmt.Printf("Setup: found %d skipped albums\n", len(skipped))
 
-		// Create map for quick lookup, converting back to relative paths
+		// Create map for quick lookup
 		skippedMap = make(map[string]bool, len(skipped))
-		for _, album := range skipped {
+		for album := range skipped {
 			skippedMap[album] = true
 		}
 	}
@@ -404,8 +404,9 @@ func matchesQuery(dirName string, queryTerms []string) bool {
 	return true
 }
 
-// ImportFunction is a function type for batch importing albums
-type ImportFunction func(ctx context.Context, batch []string) ([]string, error)
+// ImportFunction is a function type for batch importing albums.
+// Returns a map from album path to skip reason for any skipped albums.
+type ImportFunction func(ctx context.Context, batch []string) (map[string]string, error)
 
 // processAlbumBatches processes albums in batches using the provided import function
 func (m *BeetImportManager) processAlbumBatches(
@@ -482,17 +483,17 @@ func (m *BeetImportManager) processPendingAlbums(ctx context.Context, operation 
 }
 
 // importBatchNonInteractive imports a batch of albums without user interaction
-func (m *BeetImportManager) importBatchNonInteractive(ctx context.Context, batch []string) ([]string, error) {
+func (m *BeetImportManager) importBatchNonInteractive(ctx context.Context, batch []string) (map[string]string, error) {
 	return m.Beet.ImportBatch(ctx, batch)
 }
 
 // importBatchInteractive imports a batch of albums with user interaction
-func (m *BeetImportManager) importBatchInteractive(ctx context.Context, batch []string) ([]string, error) {
-	// ImportBatchInteractively doesn't return skipped albums, so we return an empty slice
+func (m *BeetImportManager) importBatchInteractive(ctx context.Context, batch []string) (map[string]string, error) {
+	// ImportBatchInteractively doesn't return skipped albums, so we return an empty map
 	if err := m.Beet.ImportBatchInteractively(ctx, batch); err != nil {
 		return nil, err
 	}
-	return []string{}, nil
+	return map[string]string{}, nil
 }
 
 // handleImportError handles errors from the import process
@@ -535,24 +536,19 @@ func (m *BeetImportManager) handleImportError(err error, batch []string, operati
 	return nil
 }
 
-// updateAlbumStatuses updates album statuses based on import results
-func (m *BeetImportManager) updateAlbumStatuses(batch []string, skipped []string, operation string) error {
-	// Create a map to track which original paths are skipped
-	skippedMap := make(map[string]bool)
-	for _, skippedPath := range skipped {
-		skippedMap[skippedPath] = true
-		fmt.Printf("%s: skipped: %s\n", operation, skippedPath)
-	}
-
-	// Identify albums that were successfully imported
+// updateAlbumStatuses updates album statuses based on import results.
+// skipped is a map from album path to skip reason.
+func (m *BeetImportManager) updateAlbumStatuses(batch []string, skipped map[string]string, operation string) error {
+	// Identify albums that were successfully imported vs skipped
 	imported := make([]string, 0, len(batch))
 	stillSkipped := make([]string, 0, len(batch))
 	for _, path := range batch {
-		if !skippedMap[path] {
+		if reason, isSkipped := skipped[path]; isSkipped {
+			stillSkipped = append(stillSkipped, path)
+			fmt.Printf("%s: skipped (%s): %s\n", operation, reason, path)
+		} else {
 			imported = append(imported, path)
 			fmt.Printf("%s: imported: %s\n", operation, path)
-		} else {
-			stillSkipped = append(stillSkipped, path)
 		}
 	}
 

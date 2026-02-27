@@ -25,7 +25,7 @@ func TestParseSkippedAlbums(t *testing.T) {
 	tests := []struct {
 		name       string
 		logContent []string
-		want       []string
+		want       map[string]string
 	}{
 		{
 			name: "basic skip with absolute paths",
@@ -33,9 +33,20 @@ func TestParseSkippedAlbums(t *testing.T) {
 				fmt.Sprintf("skip %s; already in library", filepath.Join(albumsDir, "album1")),
 				fmt.Sprintf("skip %s; duplicate", filepath.Join(albumsDir, "album2")),
 			},
-			want: []string{
-				"album1",
-				"album2",
+			want: map[string]string{
+				"album1": "no strong match",
+				"album2": "no strong match",
+			},
+		},
+		{
+			name: "duplicate-skip entries",
+			logContent: []string{
+				fmt.Sprintf("duplicate-skip %s", filepath.Join(albumsDir, "album1")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "album2")),
+			},
+			want: map[string]string{
+				"album1": "duplicate",
+				"album2": "no strong match",
 			},
 		},
 		{
@@ -53,9 +64,9 @@ func TestParseSkippedAlbums(t *testing.T) {
 				fmt.Sprintf("added %s", filepath.Join(albumsDir, "album2")),
 				fmt.Sprintf("skip %s; no match found", filepath.Join(albumsDir, "album3")),
 			},
-			want: []string{
-				"album1",
-				"album3",
+			want: map[string]string{
+				"album1": "no strong match",
+				"album3": "no strong match",
 			},
 		},
 		{
@@ -64,9 +75,9 @@ func TestParseSkippedAlbums(t *testing.T) {
 				fmt.Sprintf("skip %s; already in library", filepath.Join(albumsDir, "album with spaces")),
 				fmt.Sprintf("skip %s; no match", filepath.Join(albumsDir, "another album")),
 			},
-			want: []string{
-				"album with spaces",
-				"another album",
+			want: map[string]string{
+				"album with spaces": "no strong match",
+				"another album":     "no strong match",
 			},
 		},
 		{
@@ -93,18 +104,16 @@ func TestParseSkippedAlbums(t *testing.T) {
 
 			// Compare results
 			if len(got) != len(tt.want) {
-				t.Errorf("ParseSkippedAlbums() got %v items, want %v items", len(got), len(tt.want))
+				t.Errorf("ParseSkippedAlbums() got %v items, want %v items\ngot: %v\nwant: %v", len(got), len(tt.want), got, tt.want)
 				return
 			}
 
-			// Create map for easy comparison
-			gotMap := make(map[string]bool)
-			for _, album := range got {
-				gotMap[album] = true
-			}
-			for _, album := range tt.want {
-				if !gotMap[album] {
+			for album, wantReason := range tt.want {
+				gotReason, ok := got[album]
+				if !ok {
 					t.Errorf("ParseSkippedAlbums() missing expected album %q", album)
+				} else if gotReason != wantReason {
+					t.Errorf("ParseSkippedAlbums() album %q reason = %q, want %q", album, gotReason, wantReason)
 				}
 			}
 		})

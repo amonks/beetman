@@ -48,6 +48,8 @@ while test (count $argv) -gt 0
         case "--quiet"
             set quiet 1
             set -e argv[1]
+        case "-v"
+            set -e argv[1]
         case "-l"
             set log_file $argv[2]
             set -e argv[1]

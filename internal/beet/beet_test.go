@@ -236,13 +236,8 @@ func TestImportBatch(t *testing.T) {
 					return
 				}
 
-				// Create maps for easy comparison
-				gotMap := make(map[string]bool)
-				for _, album := range skipped {
-					gotMap[album] = true
-				}
 				for _, album := range tt.wantSkips {
-					if !gotMap[album] {
+					if _, ok := skipped[album]; !ok {
 						t.Errorf("ImportBatch() missing expected skip %q", album)
 					}
 				}

@@ -43,8 +43,9 @@ func New(tempDir string, albumsDir string) (*Manager, error) {
 	}, nil
 }
 
-// ImportBatch imports a batch of albums in quiet mode
-func (m *Manager) ImportBatch(ctx context.Context, albums []string) ([]string, error) {
+// ImportBatch imports a batch of albums in quiet mode.
+// Returns a map from album path to skip reason for any skipped albums.
+func (m *Manager) ImportBatch(ctx context.Context, albums []string) (map[string]string, error) {
 	if len(albums) > 0 && filepath.IsAbs(albums[0]) {
 		return nil, fmt.Errorf("albums must be relative paths")
 	}
@@ -65,7 +66,7 @@ func (m *Manager) ImportBatch(ctx context.Context, albums []string) ([]string, e
 	for i, album := range albums {
 		absAlbums[i] = filepath.Join(m.albumsDir, album)
 	}
-	args := []string{"import", "--quiet", "-l", logFile}
+	args := []string{"import", "--quiet", "-v", "-l", logFile}
 	args = append(args, absAlbums...)
 	cmd := exec.CommandContext(ctx, "beet", args...)
 
