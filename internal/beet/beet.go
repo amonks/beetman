@@ -66,7 +66,7 @@ func (m *Manager) ImportBatch(ctx context.Context, albums []string) (map[string]
 	for i, album := range albums {
 		absAlbums[i] = filepath.Join(m.albumsDir, album)
 	}
-	args := []string{"import", "--quiet", "-v", "-l", logFile}
+	args := []string{"-v", "import", "--quiet", "-l", logFile}
 	args = append(args, absAlbums...)
 	cmd := exec.CommandContext(ctx, "beet", args...)
 
