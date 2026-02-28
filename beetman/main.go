@@ -42,6 +42,11 @@ func run() error {
 		sig := <-sigChan
 		fmt.Printf("\nReceived signal %v, shutting down...\n", sig)
 		cancel()
+		// Second signal forces immediate exit, since the graceful
+		// shutdown path may be blocked waiting for a subprocess.
+		sig = <-sigChan
+		fmt.Printf("\nReceived signal %v, forcing exit\n", sig)
+		os.Exit(1)
 	}()
 
 	// Define global flags
