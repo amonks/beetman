@@ -269,8 +269,8 @@ func TestImportBatchInteractively(t *testing.T) {
 		{
 			name: "skipped albums",
 			albums: []string{
-				filepath.Join(albumsDir, "skipped_album1"),
-				filepath.Join(albumsDir, "skipped_album2"),
+				"skipped_album1",
+				"skipped_album2",
 			},
 			wantErr: false,
 		},
