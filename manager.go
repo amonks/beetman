@@ -306,8 +306,11 @@ func (m *BeetImportManager) HandleErrors(ctx context.Context) error {
 
 			// Prompt for removal query
 			fmt.Print("Enter beet remove query (press Enter to skip removal): ")
-			query, err = bufio.NewReader(os.Stdin).ReadString('\n')
+			query, err = readLine(ctx)
 			if err != nil {
+				if ctx.Err() != nil {
+					return fmt.Errorf("error handling cancelled: %w", ctx.Err())
+				}
 				return fmt.Errorf("failed to read query: %w", err)
 			}
 
@@ -576,6 +579,27 @@ func (m *BeetImportManager) updateAlbumStatuses(batch []string, skipped map[stri
 	}
 
 	return nil
+}
+
+// readLine reads a line from stdin, returning early if the context is cancelled.
+// If cancelled, the goroutine reading stdin is leaked, but that's fine since
+// the process is shutting down.
+func readLine(ctx context.Context) (string, error) {
+	type result struct {
+		line string
+		err  error
+	}
+	ch := make(chan result, 1)
+	go func() {
+		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		ch <- result{line, err}
+	}()
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case r := <-ch:
+		return r.line, r.err
+	}
 }
 
 // ensureDirectoryExists creates the data directory if it doesn't exist
