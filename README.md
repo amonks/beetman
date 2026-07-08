@@ -31,7 +31,7 @@ Commands:
                   --cutoff-time    Timestamp before which albums are considered processed
                   --previous-log   Path to existing beet import log file
   import        Discover and import new albums (skipping those requiring interaction)
-  handle-skips  Import previously skipped albums that need interaction
+  handle-skips  Import one batch of previously skipped albums that need interaction
   handle-skip   Import previously skipped albums matching a search query
   handle-errors Retry failed albums one by one
   stats         Get album stats

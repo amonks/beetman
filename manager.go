@@ -274,7 +274,8 @@ func (m *BeetImportManager) RetrySkips(ctx context.Context) error {
 	return m.processAlbumBatches(ctx, skipped, m.importBatchNonInteractive, "RetrySkips")
 }
 
-// HandleSkips imports previously skipped albums that need interaction
+// HandleSkips interactively imports one batch of previously skipped albums,
+// then exits so the operator can take a break between sessions.
 func (m *BeetImportManager) HandleSkips(ctx context.Context) error {
 	// Get all skipped albums
 	skipped, err := m.DB.GetSkippedAlbums()
@@ -282,7 +283,11 @@ func (m *BeetImportManager) HandleSkips(ctx context.Context) error {
 		return fmt.Errorf("failed to get skipped albums: %w", err)
 	}
 
-	// Process albums in batches with interactive import
+	// Process a single batch with interactive import
+	if len(skipped) > batchSize {
+		fmt.Printf("HandleSkips: %d skipped albums; processing one batch of %d\n", len(skipped), batchSize)
+		skipped = skipped[:batchSize]
+	}
 	return m.processAlbumBatches(ctx, skipped, m.importBatchInteractive, "HandleSkips")
 }
 

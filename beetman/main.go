@@ -17,7 +17,7 @@ func printUsage() {
 	fmt.Println("\nCommands:")
 	fmt.Println("  setup         Initialize database and process existing albums")
 	fmt.Println("  import        Discover and import new albums (skipping those requiring interaction)")
-	fmt.Println("  handle-skips  Import previously skipped albums that need interaction")
+	fmt.Println("  handle-skips  Import one batch of previously skipped albums that need interaction")
 	fmt.Println("  handle-skip   Import previously skipped albums matching a search query")
 	fmt.Println("  handle-errors Retry failed albums one by one")
 	fmt.Println("  stats         Get album stats")

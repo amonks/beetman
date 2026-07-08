@@ -4,6 +4,7 @@ import (
 	"monks.co/beetman"
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -384,6 +385,47 @@ func TestHandleSkips(t *testing.T) {
 	}
 	if len(skipped) != 0 {
 		t.Errorf("Found %d skipped albums after handle-skips, want 0", len(skipped))
+	}
+}
+
+func TestHandleSkipsProcessesOneBatch(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.cleanup()
+
+	// Create more skipped albums than fit in a single batch
+	testAlbums := make([]string, beetman.BatchSize+2)
+	for i := range testAlbums {
+		testAlbums[i] = fmt.Sprintf("skipped_album%02d", i)
+	}
+	fixtures.CreateTestAlbums(t, env.albumsDir, time.Now(), testAlbums...)
+
+	// Create manager
+	manager := CreateManager(t, env.dataDir, env.albumsDir)
+	defer manager.Close()
+
+	for _, album := range testAlbums {
+		if err := manager.DB.AddNewAlbum(album, time.Now()); err != nil {
+			t.Fatalf("Failed to add album: %v", err)
+		}
+	}
+	if err := manager.DB.MarkAsSkipped(testAlbums...); err != nil {
+		t.Fatalf("Failed to mark albums as skipped: %v", err)
+	}
+
+	// Run handle-skips
+	cleanup := mockbeet.Mock(t, env.dataDir)
+	defer cleanup()
+	if err := manager.HandleSkips(t.Context()); err != nil {
+		t.Fatalf("HandleSkips failed: %v", err)
+	}
+
+	// Verify only one batch was processed: the rest remain skipped
+	skipped, err := manager.DB.GetSkippedAlbums()
+	if err != nil {
+		t.Fatalf("Failed to get skipped albums: %v", err)
+	}
+	if len(skipped) != len(testAlbums)-beetman.BatchSize {
+		t.Errorf("Found %d skipped albums after handle-skips, want %d", len(skipped), len(testAlbums)-beetman.BatchSize)
 	}
 }
 

@@ -175,7 +175,7 @@ Commands:
                   --cutoff-time    Timestamp before which albums are considered processed
                   --previous-log   Path to existing beet import log file
   import       Discover and import new albums (skipping those requiring interaction)
-  handle-skips Import previously skipped albums that need interaction
+  handle-skips Import one batch of previously skipped albums that need interaction
 ```
 
 ## Error Handling
@@ -304,7 +304,7 @@ The import operation discovers and imports new albums:
 ### Handle-Skips Operation
 The handle-skips operation processes previously skipped albums:
 1. Get all skipped albums from database
-2. Process in batches:
+2. Process one batch, then exit (run again for the next batch):
    - Import batch with interaction enabled
    - Update status in database
    - Handle user input/output
