@@ -29,7 +29,7 @@ func Mock(t *testing.T, dir string) func() {
 // setup creates a mock beet executable for testing
 func setup(t *testing.T, tmpDir string) {
 	// Create mock beet script
-	mockScript := `#!/bin/bash
+	mockScript := `#!/usr/bin/env bash
 
 # Parse arguments
 quiet=0
@@ -97,13 +97,13 @@ if [ "$command" = "import" ]; then
     for album in "${albums[@]}"; do
         # Skip non-existent albums
         if [ ! -d "$album" ]; then
-            echo "skip $album; does not exist" >> "$log_file"
+            echo "skip $album" >> "$log_file"
             continue
         fi
 
         # Skip albums with "skip" in their name
         if [[ "$album" == *skip* ]]; then
-            echo "skip $album; test skip condition" >> "$log_file"
+            echo "skip $album" >> "$log_file"
             continue
         fi
 

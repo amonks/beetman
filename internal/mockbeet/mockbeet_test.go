@@ -116,7 +116,7 @@ func TestMockBeetBehavior(t *testing.T) {
 			name: "skipped album",
 			args: []string{"import", "--quiet", "-l", "test.log", filepath.Join(albumsDir, "skip_this_album")},
 			wantLog: []string{
-				"skip " + filepath.Join(albumsDir, "skip_this_album") + "; test skip condition",
+				"skip " + filepath.Join(albumsDir, "skip_this_album"),
 			},
 			wantExit: 0,
 		},
@@ -130,7 +130,7 @@ func TestMockBeetBehavior(t *testing.T) {
 			},
 			wantLog: []string{
 				"added " + filepath.Join(albumsDir, "normal_album"),
-				"skip " + filepath.Join(albumsDir, "skip_this_album") + "; test skip condition",
+				"skip " + filepath.Join(albumsDir, "skip_this_album"),
 			},
 			wantExit: 1,
 		},
@@ -138,7 +138,7 @@ func TestMockBeetBehavior(t *testing.T) {
 			name: "nonexistent album",
 			args: []string{"import", "--quiet", "-l", "test.log", filepath.Join(albumsDir, "nonexistent")},
 			wantLog: []string{
-				"skip " + filepath.Join(albumsDir, "nonexistent") + "; does not exist",
+				"skip " + filepath.Join(albumsDir, "nonexistent") ,
 			},
 			wantExit: 0,
 		},

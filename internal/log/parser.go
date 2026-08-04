@@ -48,8 +48,10 @@ func (p *Parser) ParseSkippedAlbums(logFile string) (map[string]string, error) {
 			continue
 		}
 
-		// Strip multi-disc paths after semicolons
-		if idx := strings.Index(path, ";"); idx >= 0 {
+		// Beets joins multiple paths (multi-disc imports) with "; ". A bare
+		// semicolon can occur inside a directory name, so only treat "; " as
+		// a separator when it starts another absolute path.
+		if idx := strings.Index(path, "; /"); idx >= 0 {
 			path = path[:idx]
 		}
 		path = strings.TrimSpace(path)
@@ -61,6 +63,11 @@ func (p *Parser) ParseSkippedAlbums(logFile string) (map[string]string, error) {
 			panic(fmt.Errorf("unexpected path: %s", path))
 		}
 		path = parts[1]
+
+		// Multi-disc albums are logged as disc subdirectories; albums are
+		// direct children of the flac dir, so the first path segment is the
+		// album directory name.
+		path, _, _ = strings.Cut(path, "/")
 
 		skipped[path] = reason
 	}

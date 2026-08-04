@@ -30,8 +30,8 @@ func TestParseSkippedAlbums(t *testing.T) {
 		{
 			name: "basic skip with absolute paths",
 			logContent: []string{
-				fmt.Sprintf("skip %s; already in library", filepath.Join(albumsDir, "album1")),
-				fmt.Sprintf("skip %s; duplicate", filepath.Join(albumsDir, "album2")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "album1")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "album2")),
 			},
 			want: map[string]string{
 				"album1": "no strong match",
@@ -60,9 +60,9 @@ func TestParseSkippedAlbums(t *testing.T) {
 		{
 			name: "mixed content",
 			logContent: []string{
-				fmt.Sprintf("skip %s; already in library", filepath.Join(albumsDir, "album1")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "album1")),
 				fmt.Sprintf("added %s", filepath.Join(albumsDir, "album2")),
-				fmt.Sprintf("skip %s; no match found", filepath.Join(albumsDir, "album3")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "album3")),
 			},
 			want: map[string]string{
 				"album1": "no strong match",
@@ -72,8 +72,8 @@ func TestParseSkippedAlbums(t *testing.T) {
 		{
 			name: "skip with spaces",
 			logContent: []string{
-				fmt.Sprintf("skip %s; already in library", filepath.Join(albumsDir, "album with spaces")),
-				fmt.Sprintf("skip %s; no match", filepath.Join(albumsDir, "another album")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "album with spaces")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "another album")),
 			},
 			want: map[string]string{
 				"album with spaces": "no strong match",
@@ -84,6 +84,42 @@ func TestParseSkippedAlbums(t *testing.T) {
 			name:       "empty log file",
 			logContent: []string{},
 			want:       nil,
+		},
+		{
+			// Multi-disc albums: beets logs each disc subdirectory as the
+			// skipped path (joined by "; "). The key must be the album
+			// directory, not the disc subdirectory, or the manager can't
+			// match it against the batch and mismarks the album imported.
+			name: "multi-disc skip paths map to the album directory",
+			logContent: []string{
+				fmt.Sprintf("skip %s; %s",
+					filepath.Join(albumsDir, "boxset_album", "Disc 1"),
+					filepath.Join(albumsDir, "boxset_album", "Disc 2")),
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "single_disc_album", "CD1")),
+				fmt.Sprintf("duplicate-skip %s", filepath.Join(albumsDir, "dup_box", "2 - Studio CD2")),
+			},
+			want: map[string]string{
+				"boxset_album":      "no strong match",
+				"single_disc_album": "no strong match",
+				"dup_box":           "duplicate",
+			},
+		},
+		{
+			// Beets joins multiple paths with "; ", but "; " can also appear
+			// inside a directory name ("Joana Gama; Luís Fernandes - ...").
+			// Only "; " followed by the start of another absolute path is a
+			// separator.
+			name: "semicolon in album directory name",
+			logContent: []string{
+				fmt.Sprintf("skip %s", filepath.Join(albumsDir, "Joana Gama; Luís Fernandes - Quest")),
+				fmt.Sprintf("skip %s; %s",
+					filepath.Join(albumsDir, "Artist A; Artist B - Split", "Disc 1"),
+					filepath.Join(albumsDir, "Artist A; Artist B - Split", "Disc 2")),
+			},
+			want: map[string]string{
+				"Joana Gama; Luís Fernandes - Quest": "no strong match",
+				"Artist A; Artist B - Split":         "no strong match",
+			},
 		},
 	}
 

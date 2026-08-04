@@ -172,7 +172,7 @@ func TestSetup(t *testing.T) {
 
 	// Create previous log file
 	logFile := filepath.Join(env.dataDir, "previous.log")
-	logContent := "skip " + filepath.Join(env.albumsDir, "old_skipped_album") + "; test skip condition\n"
+	logContent := "skip " + filepath.Join(env.albumsDir, "old_skipped_album") + "\n"
 	if err := os.WriteFile(logFile, []byte(logContent), 0644); err != nil {
 		t.Fatalf("Failed to create previous log: %v", err)
 	}
