@@ -260,11 +260,14 @@ func TestImportBatchInteractively(t *testing.T) {
 		t.Fatalf("Failed to create manager: %v", err)
 	}
 
-	// Test importing skipped albums
+	// Test importing skipped albums. mockbeet writes a skip line for any
+	// album whose name contains "skip"; interactive imports must report
+	// those so the manager can retain their skipped status.
 	tests := []struct {
-		name    string
-		albums  []string
-		wantErr bool
+		name        string
+		albums      []string
+		wantErr     bool
+		wantSkipped []string
 	}{
 		{
 			name: "skipped albums",
@@ -272,17 +275,20 @@ func TestImportBatchInteractively(t *testing.T) {
 				"skipped_album1",
 				"skipped_album2",
 			},
-			wantErr: false,
+			wantErr:     false,
+			wantSkipped: []string{"skipped_album1", "skipped_album2"},
 		},
 		{
-			name:    "empty batch",
-			albums:  []string{},
-			wantErr: false,
+			name:        "empty batch",
+			albums:      []string{},
+			wantErr:     false,
+			wantSkipped: nil,
 		},
 		{
-			name:    "non-existent albums",
-			albums:  []string{"nonexistent"},
-			wantErr: false,
+			name:        "non-existent albums",
+			albums:      []string{"nonexistent"},
+			wantErr:     false,
+			wantSkipped: []string{"nonexistent"},
 		},
 	}
 
@@ -291,10 +297,19 @@ func TestImportBatchInteractively(t *testing.T) {
 			cleanup := mockbeet.Mock(t, tmpDir)
 			defer cleanup()
 			ctx := context.Background()
-			err := manager.ImportBatchInteractively(ctx, tt.albums)
+			skipped, err := manager.ImportBatchInteractively(ctx, tt.albums)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ImportSkippedBatch() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ImportBatchInteractively() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+			if len(skipped) != len(tt.wantSkipped) {
+				t.Errorf("ImportBatchInteractively() skipped = %v, want %v", skipped, tt.wantSkipped)
+				return
+			}
+			for _, album := range tt.wantSkipped {
+				if _, ok := skipped[album]; !ok {
+					t.Errorf("ImportBatchInteractively() skipped = %v, missing %q", skipped, album)
+				}
 			}
 		})
 	}

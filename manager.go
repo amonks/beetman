@@ -494,11 +494,7 @@ func (m *BeetImportManager) importBatchNonInteractive(ctx context.Context, batch
 
 // importBatchInteractive imports a batch of albums with user interaction
 func (m *BeetImportManager) importBatchInteractive(ctx context.Context, batch []string) (map[string]string, error) {
-	// ImportBatchInteractively doesn't return skipped albums, so we return an empty map
-	if err := m.Beet.ImportBatchInteractively(ctx, batch); err != nil {
-		return nil, err
-	}
-	return map[string]string{}, nil
+	return m.Beet.ImportBatchInteractively(ctx, batch)
 }
 
 // handleImportError handles errors from the import process

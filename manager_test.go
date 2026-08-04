@@ -356,10 +356,10 @@ func TestHandleSkips(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.cleanup()
 
-	// Create test albums
+	// Create test albums (names must not contain "skip": mockbeet skips those)
 	testAlbums := []string{
-		"skipped_album1",
-		"skipped_album2",
+		"retry_album1",
+		"retry_album2",
 	}
 	fixtures.CreateTestAlbums(t, env.albumsDir, time.Now(), testAlbums...)
 
@@ -388,14 +388,54 @@ func TestHandleSkips(t *testing.T) {
 	}
 }
 
+func TestHandleSkipsRetainsBeetsSkips(t *testing.T) {
+	env := setupTestEnv(t)
+	defer env.cleanup()
+
+	// mockbeet imports "keeper_album" but writes a skip line for "skip_album"
+	testAlbums := []string{
+		"keeper_album",
+		"skip_album",
+	}
+	fixtures.CreateTestAlbums(t, env.albumsDir, time.Now(), testAlbums...)
+
+	manager := CreateManager(t, env.dataDir, env.albumsDir)
+	defer manager.Close()
+
+	for _, album := range testAlbums {
+		if err := manager.DB.AddNewAlbum(album, time.Now()); err != nil {
+			t.Fatalf("Failed to add album: %v", err)
+		}
+	}
+	if err := manager.DB.MarkAsSkipped(testAlbums...); err != nil {
+		t.Fatalf("Failed to mark albums as skipped: %v", err)
+	}
+
+	cleanup := mockbeet.Mock(t, env.dataDir)
+	defer cleanup()
+	if err := manager.HandleSkips(t.Context()); err != nil {
+		t.Fatalf("HandleSkips failed: %v", err)
+	}
+
+	// The album beet skipped must remain in the skip queue
+	skipped, err := manager.DB.GetSkippedAlbums()
+	if err != nil {
+		t.Fatalf("Failed to get skipped albums: %v", err)
+	}
+	if len(skipped) != 1 || skipped[0] != "skip_album" {
+		t.Errorf("Skipped albums after handle-skips = %v, want [skip_album]", skipped)
+	}
+}
+
 func TestHandleSkipsProcessesOneBatch(t *testing.T) {
 	env := setupTestEnv(t)
 	defer env.cleanup()
 
 	// Create more skipped albums than fit in a single batch
+	// (names must not contain "skip": mockbeet skips those)
 	testAlbums := make([]string, beetman.BatchSize+2)
 	for i := range testAlbums {
-		testAlbums[i] = fmt.Sprintf("skipped_album%02d", i)
+		testAlbums[i] = fmt.Sprintf("retry_album%02d", i)
 	}
 	fixtures.CreateTestAlbums(t, env.albumsDir, time.Now(), testAlbums...)
 
@@ -676,10 +716,10 @@ func TestHandleSkip(t *testing.T) {
 
 	// Create test albums with patterns for our search
 	testAlbums := []string{
-		"skipped_album_with_sobb_mall",
-		"skipped_album_sobb_only",
-		"skipped_album_mall_only",
-		"skipped_album_neither",
+		"held_album_with_sobb_mall",
+		"held_album_sobb_only",
+		"held_album_mall_only",
+		"held_album_neither",
 	}
 	fixtures.CreateTestAlbums(t, env.albumsDir, time.Now(), testAlbums...)
 
@@ -715,17 +755,17 @@ func TestHandleSkip(t *testing.T) {
 		{
 			name:      "single term",
 			query:     []string{"sobb"},
-			wantMatch: []string{"skipped_album_with_sobb_mall", "skipped_album_sobb_only"},
+			wantMatch: []string{"held_album_with_sobb_mall", "held_album_sobb_only"},
 		},
 		{
 			name:      "multiple terms",
 			query:     []string{"sobb", "mall"},
-			wantMatch: []string{"skipped_album_with_sobb_mall"},
+			wantMatch: []string{"held_album_with_sobb_mall"},
 		},
 		{
 			name:      "case insensitive",
 			query:     []string{"SOBB"},
-			wantMatch: []string{"skipped_album_with_sobb_mall", "skipped_album_sobb_only"},
+			wantMatch: []string{"held_album_with_sobb_mall", "held_album_sobb_only"},
 		},
 	}
 

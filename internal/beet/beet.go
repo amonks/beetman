@@ -112,19 +112,21 @@ func (m *Manager) ImportBatch(ctx context.Context, albums []string) (map[string]
 
 // ImportBatchInteractively imports a batch of albums with interaction; `beet`
 // will prompt the user for details about each album in the batch.
-func (m *Manager) ImportBatchInteractively(ctx context.Context, albums []string) error {
+// Returns a map from album path to skip reason for any albums the user
+// skipped during the session, so they retain their skipped status.
+func (m *Manager) ImportBatchInteractively(ctx context.Context, albums []string) (map[string]string, error) {
 	if len(albums) > 0 && filepath.IsAbs(albums[0]) {
-		return fmt.Errorf("albums must be relative paths")
+		return nil, fmt.Errorf("albums must be relative paths")
 	}
 
 	if len(albums) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	// Create temporary log file
 	logFile := filepath.Join(m.tempDir, "beet-import.log")
 	if err := m.cleanupLogFile(logFile); err != nil {
-		return err
+		return nil, err
 	}
 	defer m.cleanupLogFile(logFile)
 
@@ -147,7 +149,7 @@ func (m *Manager) ImportBatchInteractively(ctx context.Context, albums []string)
 	var runErr error
 	if err := cmd.Run(); err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
-			return fmt.Errorf("import operation timed out")
+			return nil, fmt.Errorf("import operation timed out")
 		}
 		runErr = err
 	}
@@ -158,7 +160,7 @@ func (m *Manager) ImportBatchInteractively(ctx context.Context, albums []string)
 
 	if hasErrorLine {
 		// Return ImportError if error lines found
-		return &ImportError{
+		return nil, &ImportError{
 			err:    fmt.Errorf("error detected in output: %v", runErr),
 			failed: albums,
 		}
@@ -166,10 +168,16 @@ func (m *Manager) ImportBatchInteractively(ctx context.Context, albums []string)
 
 	if runErr != nil {
 		// Return regular error if Run failed but no error lines
-		return fmt.Errorf("beet import failed: %w", runErr)
+		return nil, fmt.Errorf("beet import failed: %w", runErr)
 	}
 
-	return nil
+	// Parse log file to find albums the user skipped
+	skipped, err := m.parser.ParseSkippedAlbums(logFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse log file: %w", err)
+	}
+
+	return skipped, nil
 }
 
 // cleanupLogFile removes an existing log file and ensures its parent directory exists

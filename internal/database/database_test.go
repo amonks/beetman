@@ -278,3 +278,54 @@ func TestUpdateStatusTimestamp(t *testing.T) {
 		t.Errorf("Import time was not updated: before=%q, after=%q", initialImportTime, newImportTime)
 	}
 }
+
+func TestGetSkippedAlbumsQueueOrder(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "beet-import-manager-test-*")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	db, err := New(tmpDir)
+	if err != nil {
+		t.Fatalf("Failed to create database: %v", err)
+	}
+	defer db.Close()
+
+	// Skip albums one at a time so each gets a distinct timestamp
+	for _, album := range []string{"first", "second", "third"} {
+		if err := db.AddNewAlbum(album, time.Now()); err != nil {
+			t.Fatalf("Failed to add album: %v", err)
+		}
+		if err := db.MarkAsSkipped(album); err != nil {
+			t.Fatalf("Failed to mark album as skipped: %v", err)
+		}
+	}
+
+	// Oldest-skipped first, so the queue drains fairly
+	skipped, err := db.GetSkippedAlbums()
+	if err != nil {
+		t.Fatalf("Failed to get skipped albums: %v", err)
+	}
+	want := []string{"first", "second", "third"}
+	for i := range want {
+		if skipped[i] != want[i] {
+			t.Fatalf("Skipped albums = %v, want %v", skipped, want)
+		}
+	}
+
+	// Re-skipping an album refreshes its timestamp, rotating it to the back
+	if err := db.MarkAsSkipped("first"); err != nil {
+		t.Fatalf("Failed to re-mark album as skipped: %v", err)
+	}
+	skipped, err = db.GetSkippedAlbums()
+	if err != nil {
+		t.Fatalf("Failed to get skipped albums: %v", err)
+	}
+	want = []string{"second", "third", "first"}
+	for i := range want {
+		if skipped[i] != want[i] {
+			t.Fatalf("Skipped albums after re-skip = %v, want %v", skipped, want)
+		}
+	}
+}

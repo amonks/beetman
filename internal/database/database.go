@@ -86,8 +86,10 @@ func (s *SQLiteDB) GetPendingAlbums() ([]string, error) {
 }
 
 func (s *SQLiteDB) GetSkippedAlbums() ([]string, error) {
-	// For skipped albums, order by import_time DESC (newest first - most recently skipped)
-	rows, err := s.db.Query("SELECT directory_name FROM albums WHERE status = ? ORDER BY import_time DESC NULLS LAST", "skipped")
+	// Oldest-first queue: re-skipping an album refreshes its timestamp,
+	// rotating it to the back so handle-skips drains the queue fairly
+	// instead of re-presenting the same albums every batch.
+	rows, err := s.db.Query("SELECT directory_name FROM albums WHERE status = ? ORDER BY import_time ASC NULLS FIRST", "skipped")
 	if err != nil {
 		return nil, fmt.Errorf("failed to query albums: %w", err)
 	}
