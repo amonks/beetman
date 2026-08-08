@@ -20,5 +20,5 @@ modernc.org/memory v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=
 modernc.org/memory v1.11.0/go.mod h1:/JP4VbVC+K5sU2wZi9bHoq2MAkCnrt2r98UGeSK7Mjw=
 modernc.org/sqlite v1.56.0 h1:/D8e2RfFqoy/Zc6PuC76U28zFwmI/sYx1Kjm4yEn9e0=
 modernc.org/sqlite v1.56.0/go.mod h1:yCJ2cmAaIkHQ25oXWrF8H4O1lIfPYPR26yCEDj2P3pQ=
-monks.co/pkg/migrate v0.0.7 h1:gF3NSKMHTbYOTrFChD8z1PN4TubOUov7BFV0TSnr54g=
-monks.co/pkg/migrate v0.0.7/go.mod h1:vJ2bqznLjvdP5NNE9E/pp0jkFDjA+NgcmJyZggTug0M=
+monks.co/pkg/migrate v0.0.12 h1:F+F1nAmht2l8tFEoBnEy6e7DAS0iQ3Tid0e0Ejupric=
+monks.co/pkg/migrate v0.0.12/go.mod h1:y5B7ig8GAYv/PfZS0yW5BWzkphbMy/xHB920AG+6XVE=
