@@ -7,4 +7,7 @@ require (
 	monks.co/pkg/migrate v0.0.7
 )
 
-require modernc.org/sqlite v1.56.0 // indirect
+require (
+	golang.org/x/sys v0.48.0 // indirect
+	modernc.org/sqlite v1.56.0 // indirect
+)
