@@ -8,6 +8,6 @@ require (
 )
 
 require (
-	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 	modernc.org/sqlite v1.56.0 // indirect
 )
