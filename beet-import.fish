@@ -43,9 +43,3 @@ while test $current_index -le $total_albums
 	
 	set current_index (math $end_index + 1)
 end
-
-if ! contains -- --no-convert $argv
-	echo "Done importing. Converting to mp3."
-	~/scripts/beet-convert-mp3s.fish
-end
-
